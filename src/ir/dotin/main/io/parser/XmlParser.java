@@ -1,5 +1,6 @@
 package ir.dotin.main.io.parser;
 
+import ir.dotin.main.logic.Exceptions.IllegalInputException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -11,7 +12,7 @@ import java.io.IOException;
 public class XmlParser implements Parser {
     public static String filePath;
 
-    public NodeList parseByTagName(String tagName){
+    public NodeList parseByTagName(String tagName) throws IllegalInputException {
         NodeList nodeList = null;
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(filePath);
@@ -25,6 +26,9 @@ public class XmlParser implements Parser {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
-        return nodeList;
+        if (nodeList != null)
+            return nodeList;
+        else
+            throw new IllegalInputException("Illegal input file!" + "\n" + "The input file must start with <" + tagName + "> and end with </" + tagName + ">.");
     }
 }
