@@ -1,0 +1,5 @@
+InputFilePath: src\\ir\\dotin\\main\\io\\input.xml
+OutPutFilePath: src\\ir\\dotin\\main\\io\\output.xml
+LongTermInterest: 20
+ShortTermInterest: 10
+QarzInterest: 0
