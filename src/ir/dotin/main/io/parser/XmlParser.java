@@ -26,9 +26,8 @@ public class XmlParser implements Parser {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
-        if (nodeList != null)
-            return nodeList;
-        else
+        if (nodeList == null)
             throw new IllegalInputException("Illegal input file!" + "\n" + "The input file must start with <" + tagName + "> and end with </" + tagName + ">.");
+        return nodeList;
     }
 }

@@ -69,9 +69,9 @@ public class InputDataObjectHandler {
     private void checkInputValidation(String depositType, BigDecimal depositBalance, int durationInDays) throws IllegalInputException {
         if (!depositType.equalsIgnoreCase("ShortTerm") && !depositType.equalsIgnoreCase("LongTerm") && !depositType.equalsIgnoreCase("Qarz"))
             throw new IllegalInputException("Illegal depositType!");
-        else if (depositBalance.compareTo(BigDecimal.ZERO) < 0)
+        if (depositBalance.compareTo(BigDecimal.ZERO) < 0)
             throw new IllegalInputException("Illegal depositBalance!");
-        else if (durationInDays <= 0)
+        if (durationInDays <= 0)
             throw new IllegalInputException("Illegal time duration!");
     }
 }

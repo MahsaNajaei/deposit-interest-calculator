@@ -3,11 +3,11 @@ package ir.dotin.test;
 import ir.dotin.main.io.writer.WriterFactory;
 import ir.dotin.main.logic.*;
 
-import ir.dotin.main.logic.entities.BankCustomer;
-import ir.dotin.main.logic.entities.Deposit;
+import ir.dotin.main.logic.Exceptions.IllegalInputException;
 import ir.dotin.main.logic.InputDataObjectHandler;
 import ir.dotin.main.io.parser.ParserFactory;
 import ir.dotin.main.logic.Sorter;
+import ir.dotin.main.logic.entities.CustomerDeposit;
 import org.w3c.dom.NodeList;
 
 
@@ -19,41 +19,50 @@ import java.util.Map;
 
 public class Test {
     public static void main(String[] args) throws IOException {
-        //To read config files
+
         new DefaultConfigHandler().readConfigs();
 
-
         try {
-            //To read input
-            NodeList inputEntityNodes = new ParserFactory().getParser("xml").parseByTagName("deposit");
+            NodeList inputEntityNodes = readInputs();
+            List<InputDataObjectHandler.InputDataObject> inputs = extractInputObjects(inputEntityNodes);
 
-            //To extract a list of input objects
-            List<InputDataObjectHandler.InputDataObject> inputs = new InputDataObjectHandler().extractInputObjectsFromInputNodes(inputEntityNodes);
-
-            //To get corresponding bank objects from input Objects using reflection and then calculate the requested interest
             Map<Integer, BigDecimal> paidInterestPerCustomer = new HashMap<>();
             for (InputDataObjectHandler.InputDataObject inputObject : inputs) {
-
-                //reflection
-                BankObjectsReflector bankObjectsReflector = new BankObjectsReflector();
-                Deposit deposit = bankObjectsReflector.reflectDeposit(inputObject.getDepositType(), inputObject.getDepositBalance());
-                BankCustomer customer = bankObjectsReflector.reflectCustomer(inputObject.getCustomerNumber(), deposit);
-
-                //calculation of interest during requested time
-                BigDecimal requestedPayedInterest = customer.getDeposit().calculateInterestByDuration(inputObject.getDurationInDays());
-                paidInterestPerCustomer.put(customer.getCustomerNumber(), requestedPayedInterest);
+                CustomerDeposit customerDeposit = reflectCustomerDepositObject(inputObject);
+                BigDecimal payedInterest = calculateInterest(customerDeposit, inputObject.getDurationInDays());
+                paidInterestPerCustomer.put(customerDeposit.getBankCustomer().getCustomerNumber(), payedInterest);
             }
-
-            //Sorting the map
             Map<Integer, BigDecimal> sortedPaidInterestPerCustomer = Sorter.sortMapByValue(paidInterestPerCustomer);
-
-            //writing the output in a file
-            new WriterFactory().getWriter("file").write(sortedPaidInterestPerCustomer);
+            writeOutput(sortedPaidInterestPerCustomer);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    private static NodeList readInputs() throws IllegalInputException {
+        NodeList inputEntityNodes = new ParserFactory().getParser("xml").parseByTagName("deposit");
+        return inputEntityNodes;
+    }
+
+    private static List<InputDataObjectHandler.InputDataObject> extractInputObjects(NodeList inputEntityNodes) {
+        List<InputDataObjectHandler.InputDataObject> inputs = new InputDataObjectHandler().extractInputObjectsFromInputNodes(inputEntityNodes);
+        return inputs;
+    }
+
+    private static CustomerDeposit reflectCustomerDepositObject(InputDataObjectHandler.InputDataObject inputObject) {
+        CustomerDeposit customerDeposit = new BankObjectsReflector().reflectCustomerDeposit(inputObject);
+        return customerDeposit;
+    }
+
+    private static BigDecimal calculateInterest(CustomerDeposit customerDeposit, int durationInDays) {
+        BigDecimal requestedPayedInterest = customerDeposit.getBankDeposit().calculateInterestByDuration(durationInDays);
+        return requestedPayedInterest;
+    }
+
+    private static void writeOutput(Map<Integer, BigDecimal> output) {
+        new WriterFactory().getWriter("file").write(output);
     }
 }
 
