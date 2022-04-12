@@ -50,11 +50,11 @@ public class InputDataObjectHandler {
         for (int i = 0; i < inputNodes.getLength(); i++) {
             if (Node.ELEMENT_NODE == inputNodes.item(i).getNodeType()) {
                 Element inputElement = (Element) inputNodes.item(i);
-                int customerNumber = Integer.parseInt(inputElement.getElementsByTagName("customerNumber").item(0).getTextContent());
-                String depositType = inputElement.getElementsByTagName("depositType").item(0).getTextContent();
-                BigDecimal depositBalance = new BigDecimal(inputElement.getElementsByTagName("depositBalance").item(0).getTextContent());
-                int durationInDays = Integer.parseInt(inputElement.getElementsByTagName("durationInDays").item(0).getTextContent());
                 try {
+                    int customerNumber = Integer.parseInt(getTextValueByTagName(inputElement, "customerNumber"));
+                    String depositType = getTextValueByTagName(inputElement, "depositType");
+                    BigDecimal depositBalance = new BigDecimal(getTextValueByTagName(inputElement, "depositBalance"));
+                    int durationInDays = Integer.parseInt(getTextValueByTagName(inputElement, "durationInDays"));
                     checkInputValidation(depositType, depositBalance, durationInDays);
                     inputDataObjects.add(new InputDataObject(customerNumber, depositType, depositBalance, durationInDays));
                 } catch (IllegalInputException e) {
@@ -73,5 +73,13 @@ public class InputDataObjectHandler {
             throw new IllegalInputException("Illegal depositBalance!");
         if (durationInDays <= 0)
             throw new IllegalInputException("Illegal time duration!");
+    }
+
+    private String getTextValueByTagName(Element inputElement, String tagName) throws IllegalInputException {
+        if (inputElement.getElementsByTagName(tagName).getLength() == 0) {
+            throw new IllegalInputException("<" + tagName + "> does not exist among input tags!");
+        }
+        String textContent = inputElement.getElementsByTagName(tagName).item(0).getTextContent();
+        return textContent;
     }
 }
